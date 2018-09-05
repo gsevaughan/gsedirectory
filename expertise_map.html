@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Government Science and Engineering Digital Directory</title>
+    <meta charset="utf-8" />
+  </head>
+  <body>
+	<div id="header">
+		<div id="searchcontrols" class="gs_purple">
+			<div class="ui-widget, gsd">
+				<label for="expertise">Expertise: </label>
+				<input id="expertise">
+			</div>
+			<div class="ui-widget, gsd">
+				<label for="departments">Departments: </label>
+				<input id="departments">
+			</div>
+			<div class="gsd">
+				<div id="lastupdated"></div>
+				<button id="search">Search</button>
+			</div>
+		</div>
+		<div id="info"></div>
+	</div>
+	<div id="map"></div>
+	<script src="gsd.js"></script>
+	<link rel="stylesheet" href="gsd.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBdcNUfNc1YlF4zE2jgPU5d7PEIVozutSE&callback=initMap"></script>
+    <script>
+	var sheetid = '1bx9TGMTyVOhK_Q0toyya4cSboAp8o_azl7y1CUpeMo4';
+	var expertiseTab = 2;
+	var departmentTab = 1;
+	var departmentExpertiseTab = 3;
+	var departmentFilter;
+	var expertiseFilter;
+	var departmentEntries = [];
+	var departmentExpertise = [];
+	var departmentList = [];
+	var departmentsToDisplay = [];
+	var expertiseList = [];
+	var markers = [];
+	
+	function initMap() {
+		//new map centred on uk zoomed to uk extent
+		var uk = new google.maps.LatLng(54.0,-2.32);
+		map = new google.maps.Map(document.getElementById('map'), {
+		  center: uk,
+		  zoom: 6,
+		  minZoom: 6
+		});
+		//limit map panning to approximate uk and ireland extent
+		var allowedBounds = new google.maps.LatLngBounds(
+			 new google.maps.LatLng(49,-11), 
+			 new google.maps.LatLng(60,2)
+		);
+		var lastValidCenter = map.getCenter();
+
+		google.maps.event.addListener(map, 'center_changed', function() {
+			if (allowedBounds.contains(map.getCenter())) {
+				// still within valid bounds, so save the last valid position
+				lastValidCenter = map.getCenter();
+				return; 
+			}
+			// not valid anymore => return to last valid position
+			map.panTo(lastValidCenter);
+		});
+		//set up pickers
+		expertisePicker();
+		departmentsPicker();
+		$("#search").button().click(function() {
+			displayDepartments();
+		});
+	}
+
+	function clearDepartments(){
+		for(var department in markers) {
+			markers[department].setVisible(false);  
+		}
+	}
+	  
+	  function displayDepartment(department){
+		if(typeof markers[department] === 'undefined'){
+			var department = departmentEntries[department];
+			var point = new google.maps.LatLng(
+					parseFloat(department.location.split(',')[0].trim()),
+					parseFloat(department.location.split(',')[1].trim()));
+			var titleText = department.name;
+			var descriptionText = department.description;
+			var color = '#0000FF';
+			if(department.name == department.department){
+				color = '#FF0000';
+			}
+			var icon = {
+				path: "m 384,224 v -64 q 0,-13 -9.5,-22.5 Q 365,128 352,128 h -64 q -13,0 -22.5,9.5 Q 256,147 256,160 v 64 q 0,13 9.5,22.5 9.5,9.5 22.5,9.5 h 64 q 13,0 22.5,-9.5 Q 384,237 384,224 z m 0,256 v -64 q 0,-13 -9.5,-22.5 Q 365,384 352,384 h -64 q -13,0 -22.5,9.5 Q 256,403 256,416 v 64 q 0,13 9.5,22.5 9.5,9.5 22.5,9.5 h 64 q 13,0 22.5,-9.5 Q 384,493 384,480 z m 256,0 v -64 q 0,-13 -9.5,-22.5 Q 621,384 608,384 h -64 q -13,0 -22.5,9.5 Q 512,403 512,416 v 64 q 0,13 9.5,22.5 9.5,9.5 22.5,9.5 h 64 q 13,0 22.5,-9.5 Q 640,493 640,480 z M 384,736 v -64 q 0,-13 -9.5,-22.5 Q 365,640 352,640 h -64 q -13,0 -22.5,9.5 Q 256,659 256,672 v 64 q 0,13 9.5,22.5 9.5,9.5 22.5,9.5 h 64 q 13,0 22.5,-9.5 Q 384,749 384,736 z m 768,-512 v -64 q 0,-13 -9.5,-22.5 Q 1133,128 1120,128 h -64 q -13,0 -22.5,9.5 -9.5,9.5 -9.5,22.5 v 64 q 0,13 9.5,22.5 9.5,9.5 22.5,9.5 h 64 q 13,0 22.5,-9.5 9.5,-9.5 9.5,-22.5 z M 896,480 v -64 q 0,-13 -9.5,-22.5 Q 877,384 864,384 h -64 q -13,0 -22.5,9.5 Q 768,403 768,416 v 64 q 0,13 9.5,22.5 9.5,9.5 22.5,9.5 h 64 q 13,0 22.5,-9.5 Q 896,493 896,480 z M 640,736 v -64 q 0,-13 -9.5,-22.5 Q 621,640 608,640 h -64 q -13,0 -22.5,9.5 Q 512,659 512,672 v 64 q 0,13 9.5,22.5 9.5,9.5 22.5,9.5 h 64 q 13,0 22.5,-9.5 Q 640,749 640,736 z M 384,992 v -64 q 0,-13 -9.5,-22.5 Q 365,896 352,896 h -64 q -13,0 -22.5,9.5 Q 256,915 256,928 v 64 q 0,13 9.5,22.5 9.5,9.5 22.5,9.5 h 64 q 13,0 22.5,-9.5 9.5,-9.5 9.5,-22.5 z m 768,-512 v -64 q 0,-13 -9.5,-22.5 Q 1133,384 1120,384 h -64 q -13,0 -22.5,9.5 -9.5,9.5 -9.5,22.5 v 64 q 0,13 9.5,22.5 9.5,9.5 22.5,9.5 h 64 q 13,0 22.5,-9.5 9.5,-9.5 9.5,-22.5 z M 896,736 v -64 q 0,-13 -9.5,-22.5 Q 877,640 864,640 h -64 q -13,0 -22.5,9.5 Q 768,659 768,672 v 64 q 0,13 9.5,22.5 9.5,9.5 22.5,9.5 h 64 q 13,0 22.5,-9.5 Q 896,749 896,736 z M 640,992 v -64 q 0,-13 -9.5,-22.5 Q 621,896 608,896 h -64 q -13,0 -22.5,9.5 Q 512,915 512,928 v 64 q 0,13 9.5,22.5 9.5,9.5 22.5,9.5 h 64 q 13,0 22.5,-9.5 9.5,-9.5 9.5,-22.5 z m -256,256 v -64 q 0,-13 -9.5,-22.5 Q 365,1152 352,1152 h -64 q -13,0 -22.5,9.5 -9.5,9.5 -9.5,22.5 v 64 q 0,13 9.5,22.5 9.5,9.5 22.5,9.5 h 64 q 13,0 22.5,-9.5 9.5,-9.5 9.5,-22.5 z m 768,-512 v -64 q 0,-13 -9.5,-22.5 Q 1133,640 1120,640 h -64 q -13,0 -22.5,9.5 -9.5,9.5 -9.5,22.5 v 64 q 0,13 9.5,22.5 9.5,9.5 22.5,9.5 h 64 q 13,0 22.5,-9.5 9.5,-9.5 9.5,-22.5 z M 896,992 v -64 q 0,-13 -9.5,-22.5 Q 877,896 864,896 h -64 q -13,0 -22.5,9.5 Q 768,915 768,928 v 64 q 0,13 9.5,22.5 9.5,9.5 22.5,9.5 h 64 q 13,0 22.5,-9.5 9.5,-9.5 9.5,-22.5 z m -256,256 v -64 q 0,-13 -9.5,-22.5 Q 621,1152 608,1152 h -64 q -13,0 -22.5,9.5 -9.5,9.5 -9.5,22.5 v 64 q 0,13 9.5,22.5 9.5,9.5 22.5,9.5 h 64 q 13,0 22.5,-9.5 9.5,-9.5 9.5,-22.5 z m 512,-256 v -64 q 0,-13 -9.5,-22.5 Q 1133,896 1120,896 h -64 q -13,0 -22.5,9.5 -9.5,9.5 -9.5,22.5 v 64 q 0,13 9.5,22.5 9.5,9.5 22.5,9.5 h 64 q 13,0 22.5,-9.5 9.5,-9.5 9.5,-22.5 z m -256,256 v -64 q 0,-13 -9.5,-22.5 Q 877,1152 864,1152 h -64 q -13,0 -22.5,9.5 -9.5,9.5 -9.5,22.5 v 64 q 0,13 9.5,22.5 9.5,9.5 22.5,9.5 h 64 q 13,0 22.5,-9.5 9.5,-9.5 9.5,-22.5 z m 256,0 v -64 q 0,-13 -9.5,-22.5 -9.5,-9.5 -22.5,-9.5 h -64 q -13,0 -22.5,9.5 -9.5,9.5 -9.5,22.5 v 64 q 0,13 9.5,22.5 9.5,9.5 22.5,9.5 h 64 q 13,0 22.5,-9.5 9.5,-9.5 9.5,-22.5 z M 896,-128 h 384 V 1408 H 128 V -128 H 512 V 96 q 0,13 9.5,22.5 9.5,9.5 22.5,9.5 h 320 q 13,0 22.5,-9.5 Q 896,109 896,96 v -224 z m 512,1600 V -192 q 0,-26 -19,-45 -19,-19 -45,-19 H 64 q -26,0 -45,19 -19,19 -19,45 v 1664 q 0,26 19,45 19,19 45,19 h 1280 q 26,0 45,-19 19,-19 19,-45 z",
+				fillColor: color,
+				fillOpacity: 1,
+				strokeWeight: 0,
+				scale: .01,
+				rotation: 0
+			}
+			var marker = new google.maps.Marker({
+			  position: point,
+			  title: titleText,
+			  map: map,
+			  icon: icon,
+			  properties: ''
+			 });
+
+			
+			var expertise = department.expertise[1];
+			for (var i = 2; i < department.expertise.length; i++) {
+				expertise = expertise + ', ' + department.expertise[i];
+			}
+							
+			var markerInfo = 
+			'<img class="deptlogo" src="' + department.logo + '">'
+			+ "<h3>" + titleText + "</h3>" 
+			+ "<p>" + department.description + "</p>"
+			+ "<p><strong>Head of Science and Engineering Profession:</strong> ";
+			if(department.hosepurl!=''){
+				markerInfo += "<a href='" + department.hosepurl + "'>" + department.hosep + "</a></p>";
+			}else{
+
+				markerInfo += department.hosep;
+			}
+			
+			
+			markerInfo+= "</p>"
+			+ "<p><a href='" + department.webpage + "'>Website</a></p>"
+			+ "<p><strong>Expertise:</strong> " + expertise + "</p>";
+			markers[titleText] = marker;
+			marker.addListener('click', function() {
+			   $('#info').html(markerInfo);
+			   $('#info').scrollTop(0);
+			});
+		}else{
+			markers[department].setVisible(true);
+		}
+	  }
+	  
+		function drawDepartments(){
+			//nothing to do
+		}
+    </script>
+  </body>
+</html>

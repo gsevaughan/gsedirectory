@@ -1,0 +1,78 @@
+
+.deptlogo {
+	max-width: 150px;
+	max-height: 100px;
+}
+
+.expertise {
+	max-height: 150px;
+	overflow-y: scroll;
+}
+
+#map {
+	height: calc(100% - 101px);
+	width: 100%;
+}
+
+html, body {
+	height: 100%;
+	margin: 0;
+	padding: 0;
+}
+
+#info {
+	height: 100px;
+	float:left;
+	background-color:#FFFFFF;
+	overflow-y:scroll;
+	/* margin-left: 385px; */
+	/* position: absolute; */
+	font-family: sans-serif;
+	min-width: 375px;
+	width: calc(100% - 400px)
+}
+
+#info > img{
+	float:left;
+}
+
+#info > h3, #info > p {
+	margin-bottom: .25em;
+	margin-top: .25em;
+}
+
+#header {
+	background-image: url("goscience_logo.jpg");
+	background-repeat: no-repeat;
+	background-size: contain;
+	height:101px;
+	background-color: #341D4B;
+}
+
+.gs_purple {
+	background-color: #341D4B;
+}
+
+#searchcontrols {
+	margin-left:100px;
+	float:left;
+	height:101px;
+	font-family: sans-serif;
+}
+
+#searchcontrols label {
+	color:#FFFFFF;
+}
+
+#searchcontrols input, #searchcontrols button {
+	float:right;
+}
+
+.gsd {
+	padding:5px;
+}
+
+#lastupdated {
+	float:left;
+	color:#FFFFFF;
+}

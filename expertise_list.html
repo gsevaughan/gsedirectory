@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Government Science and Engineering Digital Directory</title>
+    <meta charset="utf-8" />
+	<link rel="stylesheet" href="gsd.css">
+	<script src="gsd.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+	<link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">
+	<script async defer src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js" onload="handleClientLoad()"></script>
+	<script type="text/javascript">
+	var sheetid = '1bx9TGMTyVOhK_Q0toyya4cSboAp8o_azl7y1CUpeMo4';
+	var expertiseTab = 2;
+	var departmentTab = 1;
+	var departmentExpertiseTab = 3;
+	var departmentFilter;
+	var expertiseFilter;
+	var departmentEntries = [];
+	var departmentExpertise = [];
+	var departmentList = [];
+	var departmentsToDisplay = [];
+	var expertiseList = [];
+	var table;
+	function handleClientLoad() {
+		table = $('#table').DataTable( {
+			columns: [
+				{ data: "name", title: "Name" },
+				{ data: "description", title: "Description" },
+				{ data: "hosep", title: "HoSEP",
+					"render": function ( data, type, row, meta ) {
+						if(row.hosepurl!=''){
+							return '<a href="'+row.hosepurl+'">'+data+'</a>';
+						}else{
+							return data;
+						}
+					}
+				},
+				{ data: "expertise", title: "Expertise",
+					"render": function ( data, type, row, meta ) {
+						if(data.length > 0){
+							var cell = '<div class="expertise">' + data[1];
+							for (var i = 2; i < data.length; i++) {
+								cell = cell + ', ' + data[i];
+							}
+							return cell +"</div>";
+						}else{
+							return "";
+						}
+					}
+				},
+				{ data: "location", title: "Location",
+					"render": function ( data, type, row, meta ) {
+						return '<img src="http://maps.googleapis.com/maps/api/staticmap?center='+data+'&zoom=10&size=150x150&maptype=normal">';
+					}
+				},
+				{ data: "logo", title: "Logo",
+					"render": function ( data, type, row, meta ) {
+						return '<img class="deptlogo" src="'+data+'">';
+					}
+				},
+				{ data: "webpage", title: "Web Page",
+					"render": function ( data, type, row, meta ) {
+						return '<a href="'+data+'">Website</a>';
+					}
+				}
+			],
+			"scrollY": window.innerHeight-200,
+			"scrollCollapse": true,
+			"paging":         false
+		} );
+		//set up pickers
+		departmentsPicker();
+		expertisePicker();
+		$("#search").button().click(function() {
+			displayDepartments();
+		});
+	}
+
+	function clearDepartments(){
+		table.clear().draw();
+		departmentsToDisplay = [];
+	}
+	  
+	function displayDepartment(department){
+		if (typeof departmentsToDisplay[department] === 'undefined'){
+			table.row.add(departmentEntries[department]);
+			departmentsToDisplay[department] = true;
+		}
+	}
+
+	function drawDepartments(){
+		table.draw();
+	}
+    </script>
+  </head>
+  <body>
+    <div id="header" class="gs_purple">
+		<div id="searchcontrols">
+			<div class="ui-widget, gsd">
+				<label for="expertise">Expertise: </label>
+				<input id="expertise">
+			</div>
+			<div class="ui-widget, gsd">
+				<label for="departments">Departments: </label>
+				<input id="departments">
+			</div>
+			<div class="gsd">
+				<div id="lastupdated"></div>
+				<button id="search">Search</button>
+			</div>
+		</div>
+	</div>
+	<div>
+	<table id="table" class="display compact" cellspacing="0" width="100%"></table>
+	</div>
+    
+	
+  </body>
+</html>
